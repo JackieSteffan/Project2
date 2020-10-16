@@ -742,26 +742,58 @@ Lastly, you will find a comparison of RMSE, when deciding which model is the “
 <a class="sourceLine" id="cb12-6" title="6"></a>
 <a class="sourceLine" id="cb12-7" title="7"><span class="co">#boosted model</span></a>
 <a class="sourceLine" id="cb12-8" title="8"><span class="co">#build boosted tree using gbm and train with repeated cross validation and default tuning parameters.</span></a>
-<a class="sourceLine" id="cb12-9" title="9">boostTree &lt;-<span class="st"> </span><span class="kw">train</span>(shares <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> treeDat, <span class="dt">method =</span> <span class="st">&quot;gbm&quot;</span>,</a>
-<a class="sourceLine" id="cb12-10" title="10">                   <span class="dt">trControl =</span> <span class="kw">trainControl</span>(<span class="dt">method =</span> <span class="st">&quot;repeatedcv&quot;</span>, <span class="dt">number =</span> <span class="dv">10</span>, <span class="dt">repeats =</span> <span class="dv">5</span>),</a>
-<a class="sourceLine" id="cb12-11" title="11">                   <span class="dt">preProcess =</span> <span class="kw">c</span>(<span class="st">&quot;center&quot;</span>, <span class="st">&quot;scale&quot;</span>), <span class="dt">verbose =</span> <span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb12-12" title="12"><span class="co">#print results of boosted tree</span></a>
-<a class="sourceLine" id="cb12-13" title="13">boostTree<span class="op">$</span>results</a></code></pre></div>
-<pre><code>##   shrinkage interaction.depth n.minobsinnode n.trees     RMSE   Rsquared      MAE   RMSESD RsquaredSD    MAESD
-## 1       0.1                 1             10      50 9373.352 0.03252371 3049.731 5038.198 0.02925832 440.3515
-## 4       0.1                 2             10      50 9492.213 0.02828699 3083.565 4988.696 0.02656925 446.9339
-## 7       0.1                 3             10      50 9617.186 0.02281443 3136.943 4918.473 0.02654742 422.7180
-## 2       0.1                 1             10     100 9408.380 0.03229929 3062.392 5018.264 0.02978144 441.8990
-## 5       0.1                 2             10     100 9596.079 0.02657570 3136.569 4950.914 0.02491164 441.1486
-## 8       0.1                 3             10     100 9769.892 0.01952895 3222.491 4851.966 0.02370665 408.8830
-## 3       0.1                 1             10     150 9435.446 0.03046813 3080.278 5006.067 0.02696026 435.2726
-## 6       0.1                 2             10     150 9695.301 0.02355419 3197.325 4922.815 0.02309736 447.0157
-## 9       0.1                 3             10     150 9913.733 0.01666869 3322.430 4798.417 0.01938310 395.5403
+<a class="sourceLine" id="cb12-9" title="9">gbmGrid &lt;-<span class="st">  </span><span class="kw">expand.grid</span>(<span class="dt">interaction.depth =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">5</span>, <span class="dv">9</span>), </a>
+<a class="sourceLine" id="cb12-10" title="10">                        <span class="dt">n.trees =</span> (<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>)<span class="op">*</span><span class="dv">50</span>, </a>
+<a class="sourceLine" id="cb12-11" title="11">                        <span class="dt">shrinkage =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>),</a>
+<a class="sourceLine" id="cb12-12" title="12">                        <span class="dt">n.minobsinnode =</span> <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">20</span>))</a>
+<a class="sourceLine" id="cb12-13" title="13">boostTree &lt;-<span class="st"> </span><span class="kw">train</span>(shares <span class="op">~</span><span class="st"> </span>., <span class="dt">data =</span> treeDat, <span class="dt">method =</span> <span class="st">&quot;gbm&quot;</span>,</a>
+<a class="sourceLine" id="cb12-14" title="14">                   <span class="dt">trControl =</span> <span class="kw">trainControl</span>(<span class="dt">method =</span> <span class="st">&quot;repeatedcv&quot;</span>, <span class="dt">number =</span> <span class="dv">10</span>, <span class="dt">repeats =</span> <span class="dv">5</span>),</a>
+<a class="sourceLine" id="cb12-15" title="15">                   <span class="dt">preProcess =</span> <span class="kw">c</span>(<span class="st">&quot;center&quot;</span>, <span class="st">&quot;scale&quot;</span>), <span class="dt">verbose =</span> <span class="ot">FALSE</span>,</a>
+<a class="sourceLine" id="cb12-16" title="16">                   <span class="dt">tuneGrid =</span> gbmGrid)</a>
+<a class="sourceLine" id="cb12-17" title="17"><span class="co">#print results of boosted tree</span></a>
+<a class="sourceLine" id="cb12-18" title="18">boostTree<span class="op">$</span>results</a></code></pre></div>
+<pre><code>##    shrinkage interaction.depth n.minobsinnode n.trees      RMSE    Rsquared      MAE   RMSESD  RsquaredSD    MAESD
+## 1        0.1                 1             10      50  9373.310 0.032231981 3048.861 5042.570 0.028923573 448.5803
+## 4        0.1                 1             20      50  9369.923 0.032594569 3044.330 5038.419 0.028703016 442.2574
+## 19       0.2                 1             10      50  9418.890 0.030521617 3069.141 5017.909 0.028930422 450.4378
+## 22       0.2                 1             20      50  9406.015 0.032695225 3065.702 5017.579 0.027272258 441.1513
+## 7        0.1                 5             10      50  9720.630 0.020817111 3187.857 4885.609 0.025009900 424.5127
+## 10       0.1                 5             20      50  9587.038 0.023070884 3168.803 4932.184 0.017906390 431.8720
+## 25       0.2                 5             10      50 10143.270 0.012397016 3471.536 4707.120 0.015801577 413.0330
+## 28       0.2                 5             20      50  9878.042 0.017753631 3406.540 4787.714 0.017600695 389.6175
+## 13       0.1                 9             10      50  9760.034 0.021116008 3255.768 4822.721 0.024078284 395.5369
+## 16       0.1                 9             20      50  9591.288 0.024730087 3171.772 4930.280 0.024107831 409.7847
+## 31       0.2                 9             10      50 10353.761 0.011543352 3680.088 4596.116 0.012702538 370.8176
+## 34       0.2                 9             20      50  9903.988 0.018712679 3502.708 4788.178 0.021198959 382.3640
+## 2        0.1                 1             10     100  9415.690 0.032250136 3071.506 5020.210 0.029464252 445.0265
+## 5        0.1                 1             20     100  9397.864 0.032876838 3057.680 5022.621 0.028861106 442.4504
+## 20       0.2                 1             10     100  9455.543 0.029376555 3099.708 5003.755 0.025305376 438.7099
+## 23       0.2                 1             20     100  9434.039 0.030958760 3094.183 5005.932 0.024876714 433.6519
+## 8        0.1                 5             10     100  9924.007 0.016547496 3349.122 4815.319 0.016336429 405.5801
+## 11       0.1                 5             20     100  9742.456 0.018250107 3292.644 4868.748 0.015308337 410.2986
+## 26       0.2                 5             10     100 10511.193 0.010139713 3787.402 4565.833 0.014250728 372.1230
+## 29       0.2                 5             20     100 10167.928 0.012309088 3700.878 4680.649 0.012485232 344.6002
+## 14       0.1                 9             10     100 10026.187 0.016640272 3460.846 4703.145 0.016709760 365.0490
+## 17       0.1                 9             20     100  9793.409 0.017696733 3346.161 4846.339 0.016356797 386.5346
+## 32       0.2                 9             10     100 10748.450 0.009840980 4053.191 4440.652 0.011206517 341.1391
+## 35       0.2                 9             20     100 10238.402 0.013482274 3863.610 4657.495 0.016998686 339.8765
+## 3        0.1                 1             10     150  9421.780 0.032713654 3071.609 5017.178 0.028937609 437.9580
+## 6        0.1                 1             20     150  9417.792 0.031502626 3064.118 5019.765 0.028240879 437.7350
+## 21       0.2                 1             10     150  9480.137 0.028708757 3124.380 4993.029 0.025857709 432.3935
+## 24       0.2                 1             20     150  9457.638 0.030118401 3122.366 5006.640 0.027064830 434.1362
+## 9        0.1                 5             10     150 10078.830 0.014884446 3480.174 4750.213 0.015139457 379.5305
+## 12       0.1                 5             20     150  9854.015 0.015689256 3400.084 4837.698 0.013597090 409.5842
+## 27       0.2                 5             10     150 10748.271 0.008983848 4028.061 4450.922 0.013810395 344.7322
+## 30       0.2                 5             20     150 10361.202 0.012252266 3935.529 4609.337 0.014395687 326.6082
+## 15       0.1                 9             10     150 10195.333 0.015205572 3608.797 4630.045 0.016576933 349.0067
+## 18       0.1                 9             20     150  9948.998 0.015437953 3504.717 4783.115 0.015919134 355.9761
+## 33       0.2                 9             10     150 10953.554 0.009149751 4298.416 4353.217 0.008895488 323.8770
+## 36       0.2                 9             20     150 10452.948 0.012675552 4110.425 4582.647 0.015720427 337.0290
 </code></pre>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1"><span class="co">#print best tree</span></a>
 <a class="sourceLine" id="cb14-2" title="2">boostTree<span class="op">$</span>bestTune</a></code></pre></div>
 <pre><code>##   n.trees interaction.depth shrinkage n.minobsinnode
-## 1      50                 1       0.1             10
+## 4      50                 1       0.1             20
 </code></pre>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1"><span class="co">#predict number of shares on the test data set using the boosted tree</span></a>
 <a class="sourceLine" id="cb16-2" title="2">boostPred &lt;-<span class="st"> </span><span class="kw">predict</span>(boostTree, <span class="dt">newdata =</span> <span class="kw">select</span>(DayTest, <span class="op">-</span><span class="kw">c</span>(<span class="st">&quot;url&quot;</span>, <span class="kw">starts_with</span>(<span class="st">&quot;weekday_is&quot;</span>), <span class="st">&quot;is_weekend&quot;</span>)), <span class="dt">n.trees =</span> <span class="dv">5000</span>)</a>
@@ -772,7 +804,7 @@ Lastly, you will find a comparison of RMSE, when deciding which model is the “
 <a class="sourceLine" id="cb16-7" title="7"><span class="co">#print RMSE for both models and compare results.</span></a>
 <a class="sourceLine" id="cb16-8" title="8"><span class="kw">c</span>(<span class="dt">tree =</span> trRMSE, <span class="dt">boost =</span> boostRMSE)</a></code></pre></div>
 <pre><code>##     tree    boost 
-## 8545.452 7310.172
+## 8545.452 7313.465
 </code></pre>
 
 </body>
