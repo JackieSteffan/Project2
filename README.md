@@ -1,8 +1,10 @@
-## Welcome to GitHub Pages
+## This Repository
 
-You can use the [editor on GitHub](https://github.com/JackieSteffan/Project2/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+This respository contains files that predict the number of shares for an Online News Popularity Data Set. It is broken up by day that the articles were published.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+ [Monday is available here](Monday.html)
+ [Tuesday is available here](Tuesdday.html)
+ [Wednesday is available here](Wednesday.html)
 
 ### Markdown
 
