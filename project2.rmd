@@ -1,0 +1,123 @@
+---
+title: "Project 2"
+author: "Jackie Steffan"
+date: "10/16/2020"
+params:
+  weekday: x[[2]]
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+#load in required packages
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+library(GGally)
+library(tree)
+library(caret)
+library(gbm)
+library(rpart)
+library(rmarkdown)
+```
+
+
+# Introduction
+
+This data set looks at articles that were published on the website Mashable. The articles included were published over a 2 year period. The goal of the data set was to look at the frequency of sharing and the popularity of each article. According to the data documentation, the variables url and timedelta are non-predicitve, so I chose not to use them.  
+This analysis is intended to predict the number of shares an article will have based on other factors such as word count, number of pictures, etc. I am using 2 tree methods that you will see later in this document. One is a non-ensemble regression tree and the other is a bosoted tree.  
+
+# Data
+
+In this section I am reading in the data described above.  
+I then separate the data into a training data set that contains 70% of the data and a testing data set that contains the remaining 30% of the data.   
+```{r, data}
+#read in data
+popData <- read_csv("./OnlineNewsPopularity.csv")
+#combine boolean varaibles to make them easier to work with using mutate
+popData <- popData %>% mutate(weekday = ifelse(weekday_is_monday == 1, "Monday", 
+                                    ifelse(weekday_is_tuesday == 1, "Tuesday",
+                                           ifelse(weekday_is_wednesday==1, "Wednesday",
+                                                  ifelse(weekday_is_thursday==1, "Thursday",
+                                                         ifelse(weekday_is_friday==1, "Friday",
+                                                                ifelse(weekday_is_saturday==1, "Saturday", "Sunday"))))))) %>%
+  mutate(channel_type = ifelse(data_channel_is_lifestyle == 1, "Lifestyle",
+                               ifelse(data_channel_is_entertainment ==1, "Entertainment",
+                                      ifelse(data_channel_is_bus ==1, "Business",
+                                             ifelse(data_channel_is_socmed ==1, "Social Media",
+                                                    ifelse(data_channel_is_tech == 1, "Tech",
+                                                           ifelse(data_channel_is_world ==1, "World", "Other"))))))) %>%
+                                    select(-starts_with("weekday_is"), -starts_with("data_channel"))
+
+#filter to select appropriate weekday
+weekdayDat <- filter(popData, weekday== params$weekday)
+
+#set seed for reproducibility
+set.seed(5)
+#split into training and test sets
+train <- sample(1:nrow(weekdayDat), size = nrow(weekdayDat)*0.7)
+test <- dplyr::setdiff(1:nrow(weekdayDat), train)
+DayTrain <- weekdayDat[train, ]
+DayTest <- weekdayDat[test, ]
+```
+
+# Summarization
+Here I am creating summaries for all the predictive variables that are numeric, the summaries included are min, max, median, mean, and the first and 3rd quantiles. I am also including a correlation plot that shows the correlation between our response variable, shares, and the other predictive numeric variables. Lastly I included a pairs plot of the response variable and some other predictive variables, which shows what the 2 variables look like plotted against one another.  
+
+```{r summary}
+#summary of numeric variables
+summary(select(DayTrain,-c("url", "weekday", "timedelta", "channel_type", "is_weekend")))
+
+#correlation of selected variables
+cors <- cor(select(DayTrain, -url, -timedelta, -weekday, -channel_type, -is_weekend))
+#correlation plot showing just correlation with the response variable shares
+corrplot(cors["shares",,drop=FALSE], type = "upper", tl.pos = "lt",cl.pos = "n")
+
+#pairs data with selected variables
+pairs(select(DayTrain, shares, num_hrefs, self_reference_min_shares, kw_max_min, self_reference_avg_sharess, kw_avg_avg, kw_avg_min, average_token_length, global_sentiment_polarity))
+pairs(select(DayTrain, shares,num_videos, n_non_stop_unique_tokens, LDA_00, LDA_03, LDA_01, LDA_04, min_negative_polarity, n_unique_tokens))
+```
+
+# Models
+In this section I am creating 2 tree models. The first is a non-ensemble based tree selected using leave one out cross-validation. I am also using cp between 0 and 0.2 for my tuning parameter. The final model is printed below.  
+The second model is a boosted tree selected using repeated cross validation and the default tuning parameters. The final model is also printed in the output.  
+Lastly, you will find a comparison of RMSE, when deciding which model is the "better" model you should select the one that has the lower RMSE.  
+```{r, models, cache= TRUE}
+#select relevant datapoints
+treeDat <- select(DayTrain,-c("url", "weekday", "is_weekend", "timedelta"))
+#build regression tree using rpart and train using LOOCV and tuning parameter cp
+classTree <- train(shares~., data= select(DayTrain,-url, -weekday, -is_weekend, -timedelta), 
+                   method= "rpart",
+                   trControl = trainControl(method = "LOOCV"),
+                   tuneGrid = data.frame(cp=0:0.2),
+                   metric = "MAE")
+#print results of tree
+classTree$results
+#predict the number of shares on the test dataset using the above tree
+pred<- predict(classTree, newdata = select(DayTest, -c("url", starts_with("weekday_is"), "is_weekend")))
+#calculate RMSE
+trRMSE<- sqrt(mean((pred-DayTest$shares)^2))
+
+
+#boosted model
+#build boosted tree using gbm and train with repeated cross validation and default tuning parameters.
+boostTree <- train(shares ~ ., data = treeDat, method = "gbm",
+                   trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5),
+                   preProcess = c("center", "scale"), verbose = FALSE)
+#print results of boosted tree
+boostTree$results
+#print best tree
+boostTree$bestTune
+#predict number of shares on the test data set using the boosted tree
+boostPred <- predict(boostTree, newdata = select(DayTest, -c("url", starts_with("weekday_is"), "is_weekend")), n.trees = 5000)
+#calculate RMSE
+boostRMSE<- sqrt(mean((boostPred-DayTest$shares)^2))
+
+
+#print RMSE for both models and compare results.
+c(tree = trRMSE, boost = boostRMSE)
+```
+
