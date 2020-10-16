@@ -2,13 +2,13 @@
 
 This respository contains files that predict the number of shares for an Online News Popularity Data Set. It is broken up by day that the articles were published.
 
- [Monday is available here](Monday.html)  
- [Tuesday is available here](Tuesdday.html)  
- [Wednesday is available here](Wednesday.html)  
- [Thursday is available here](Thursday.html)  
- [Friday is available here](Friday.html)  
- [Saturday is available here](Saturday.html)  
- [Sunday is available here](Sunday.html)  
+ [Monday is available here](Monday.md)  
+ [Tuesday is available here](Tuesdday.md)  
+ [Wednesday is available here](Wednesday.md)  
+ [Thursday is available here](Thursday.md)  
+ [Friday is available here](Friday.md)  
+ [Saturday is available here](Saturday.md)  
+ [Sunday is available here](Sunday.md)  
 
 ### Required Packages
 
@@ -19,7 +19,7 @@ This respository contains files that predict the number of shares for an Online 
 ```markdown
 daysofWeek <- unique(popData$weekday)
 #create filenames
-output_file <- paste0(daysofWeek, ".html")
+output_file <- paste0(daysofWeek, ".md")
 #create a list for each team with just the team name parameter
 params = lapply(daysofWeek, FUN = function(x){list(weekday = x)})
 
