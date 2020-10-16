@@ -2,38 +2,33 @@
 
 This respository contains files that predict the number of shares for an Online News Popularity Data Set. It is broken up by day that the articles were published.
 
- [Monday is available here](Monday.html)
- [Tuesday is available here](Tuesdday.html)
- [Wednesday is available here](Wednesday.html)
+ [Monday is available here](Monday.html)  
+ [Tuesday is available here](Tuesdday.html)  
+ [Wednesday is available here](Wednesday.html)  
+ [Thursday is available here](Thursday.html)  
+ [Friday is available here](Friday.html)  
+ [Saturday is available here](Saturday.html)  
+ [Sunday is available here](Sunday.html)  
 
-### Markdown
+### Required Packages
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+`tidyverse`, `corrplot`, `ggplot2`, `GGally`, `tree`, `caret`, `gbm`, `rpart`, `rmarkdown`  
+
+### Automation Code
 
 ```markdown
-Syntax highlighted code block
+daysofWeek <- unique(popData$weekday)
+#create filenames
+output_file <- paste0(daysofWeek, ".html")
+#create a list for each team with just the team name parameter
+params = lapply(daysofWeek, FUN = function(x){list(weekday = x)})
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+#put into a data frame 
+reports <- tibble(output_file, params)
+#need to use x[[1]] to get at elements since tibble doesn't simplify
+apply(reports, MARGIN = 1, 
+      FUN = function(x){
+        render(input = "project2.Rmd", output_file = x[[1]], params = x[[2]])
+      })
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/JackieSteffan/Project2/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
