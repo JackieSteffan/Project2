@@ -1,6 +1,6 @@
 daysofWeek <- unique(popData$weekday)
 #create filenames
-output_file <- paste0(daysofWeek, ".html")
+output_file <- paste0(daysofWeek, ".md")
 #create a list for each team with just the team name parameter
 params = lapply(daysofWeek, FUN = function(x){list(weekday = x)})
 

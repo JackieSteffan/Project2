@@ -104,9 +104,14 @@ trRMSE<- sqrt(mean((pred-DayTest$shares)^2))
 
 #boosted model
 #build boosted tree using gbm and train with repeated cross validation and default tuning parameters.
+gbmGrid <-  expand.grid(interaction.depth = c(1, 5, 9), 
+                        n.trees = (1:3)*50, 
+                        shrinkage = c(0.1, 0.2),
+                        n.minobsinnode = c(10,20))
 boostTree <- train(shares ~ ., data = treeDat, method = "gbm",
                    trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5),
-                   preProcess = c("center", "scale"), verbose = FALSE)
+                   preProcess = c("center", "scale"), verbose = FALSE,
+                   tuneGrid = gbmGrid)
 #print results of boosted tree
 boostTree$results
 #print best tree
