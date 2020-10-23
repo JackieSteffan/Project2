@@ -22,6 +22,7 @@ library(caret)
 library(gbm)
 library(rpart)
 library(rmarkdown)
+library(knitr)
 ```
 
 
@@ -53,7 +54,7 @@ popData <- popData %>% mutate(weekday = ifelse(weekday_is_monday == 1, "Monday",
                                     select(-starts_with("weekday_is"), -starts_with("data_channel"))
 
 #filter to select appropriate weekday
-weekdayDat <- filter(popData, weekday== params$weekday)
+weekdayDat <- filter(popData, weekday == params$weekday)
 
 #set seed for reproducibility
 set.seed(5)
@@ -124,5 +125,30 @@ boostRMSE<- sqrt(mean((boostPred-DayTest$shares)^2))
 
 #print RMSE for both models and compare results.
 c(tree = trRMSE, boost = boostRMSE)
+```
+
+# Linear Regression Model  
+
+This part of the code was added by Hannah Park as part II of the project. Here, a linear regression model is fit on the training data set using the same predictor variables as those used in the two tree models. Then, predictions of the model are made on the test data set, and the test MSE from the linear regression model is compared to those of the tree models.   
+
+```{r lmModel, warning = FALSE, message = FALSE}
+# Fit a linear regression
+linReg <- train(shares ~ .,
+                data = select(DayTrain,-url, -weekday, -is_weekend, -timedelta),
+                method = "lm",
+                trControl = trainControl(method = "cv", number = 10))
+summary(linReg)
+
+# Make predictions using the Test set
+lmPred <- predict(linReg, DayTest)
+DayTest$predictions <- lmPred
+kable(head(select(DayTest, shares, predictions)))
+
+# Compare test RMSE of lm model to those of the two tree models
+lmRMSE <- sqrt(mean((lmPred - DayTest$shares)^2))
+kable(c("Regression Tree" = trRMSE, 
+        "Boosted Tree" = boostRMSE, 
+        "Linear Regression" = lmRMSE),
+      col.names = "RMSE")
 ```
 
